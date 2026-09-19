@@ -67,3 +67,9 @@ Artifact 版にはあるが、静的サイトには持ち込まない。
 - ZMK の `.keymap` ファイル（DTS）の直読み。いまはエディタの JSON のみ。
 - レイヤー表・コンボ一覧の表示（読み込んだ配列のぶん）。
 - 反応を測る導線（フォーム等）。
+
+## リポジトリに何が入っているか
+
+- `index.html` — 製品。これ1枚で動く
+- `_source.html` — 組み立て元（Artifact 版のHTML）。これが無いと `build*.js` は流せないので同梱している
+- `sample-keymap.json` — 「サンプルで試す」に使う実物のキーマップ（Conductor Monokey）
