@@ -17,9 +17,10 @@
 node build.js    # 物理配置とキーマップ読み込みを汎用化
 node build2.js   # ローダーの配線／アカウント・順位表の撤去
 node build3.js   # 注記の汎用化／打てない語の除外
+node build4.js   # HTML文書として包む（文字コード・viewport・noindex）
 ```
 
-`_source.html` を更新したら3本を順に流す。
+`_source.html` を更新したら4本を順に流す。
 
 ## 対応するキーマップの形
 
