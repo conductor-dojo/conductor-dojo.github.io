@@ -298,6 +298,53 @@ header.top{
 }
 .reload:hover{border-color:var(--copper);color:var(--copper)}
 
+/* ---------- 自分の欄 ---------- */
+.me-row{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:6px;
+  padding:9px 11px;margin:0 auto 10px;width:100%;max-width:520px;
+}
+.me-row .lbav{width:26px;height:26px}
+.me-row label{font-size:11.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.me-row input{
+  flex:1 1 130px;min-width:0;font-family:inherit;font-size:16px;font-weight:700;
+  padding:5px 9px;border-radius:4px;border:1px solid var(--line);
+  background:var(--surface);color:var(--text);
+}
+.me-row input:focus{outline:none;border-color:var(--copper);box-shadow:0 0 0 2px color-mix(in srgb,var(--copper) 20%,transparent)}
+.me-row .btn{padding:5px 12px;font-size:12px}
+.me-msg{font-size:11.5px;font-weight:700;color:var(--ok);white-space:nowrap}
+.me-note{font-size:11.5px;color:var(--muted);line-height:1.55;max-width:520px;margin:0 auto 10px;text-align:center}
+.me-note b{color:var(--text)}
+
+/* ---------- 順位表 ---------- */
+.lbwrap{padding:4px 18px 18px}
+.lb-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:10px 0 9px}
+.lb-head h2{font-size:14px;font-weight:800;font-stretch:90%}
+.lb-head p{margin:0;font-size:11.5px;color:var(--muted)}
+.lbtabs{display:flex;gap:4px;margin-left:auto}
+.lbtab{
+  cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;
+  border:1px solid var(--line);border-radius:4px;padding:3px 9px;background:none;color:var(--muted);
+}
+.lbtab[aria-pressed="true"]{background:var(--copper);border-color:var(--copper);color:var(--on-copper)}
+.lb{display:flex;flex-direction:column;gap:3px;width:100%;max-width:520px;margin:0 auto}
+.lbrow{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:5px;
+  background:var(--surface-2);border:1px solid transparent}
+.lbrow.me{border-color:var(--copper);background:color-mix(in srgb,var(--copper) 13%,var(--surface-2))}
+.lbrank{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:700;color:var(--muted);
+  min-width:2.1em;text-align:right;font-variant-numeric:tabular-nums;flex:0 0 auto}
+.lbrow.top .lbrank{color:var(--copper)}
+.lbav{width:22px;height:22px;border-radius:50%;flex:0 0 auto;object-fit:cover;background:var(--line)}
+.lbname{font-size:13px;font-weight:700;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbsub{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);
+  font-variant-numeric:tabular-nums;flex:0 0 auto}
+.lbtime{font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:700;
+  font-variant-numeric:tabular-nums;flex:0 0 auto;min-width:5.2em;text-align:right}
+.lbmsg{font-size:12.5px;color:var(--muted);text-align:center;padding:12px;line-height:1.6}
+.myrank{font-size:14px;font-weight:800;color:var(--copper);text-align:center;padding-top:4px}
+.myrank b{font-family:"IBM Plex Mono",monospace;font-size:20px;font-variant-numeric:tabular-nums}
+
 /* ---------- コース選択 ---------- */
 .courses{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:10px;padding:18px}
 .course{
@@ -496,6 +543,21 @@ section.ref{margin-top:46px}
       <div id="g-pick">
         <p class="pick-lead">配線を流れてくるキーキャップを1枚ずつ打ち切って、<b>40キーぜんぶ</b>を盤面に書き込みます。<b>時間制限はありません。</b>落ちる皿は無いので、詰まったら止まって考えて大丈夫です。難しさは <b>梅 → 竹 → 松</b> の三段。記録は<b>40キー書き込むまでの時間</b>です。</p>
         <div class="courses" id="courses"></div>
+        <div class="lbwrap">
+          <div class="lb-head">
+            <h2>順位表</h2>
+            <p>等級ごとのベストタイム</p>
+            <div class="lbtabs" id="lb-tabs"></div>
+          </div>
+          <div class="me-row" id="me-row" hidden>
+            <label for="me-name">表示名</label>
+            <input id="me-name" maxlength="20" autocomplete="off" spellcheck="false">
+            <button class="btn" id="me-save" type="button">保存</button>
+            <span class="me-msg" id="me-msg"></span>
+          </div>
+          <div class="me-note" id="me-note" hidden></div>
+          <div class="lb" id="lb-pick"></div>
+        </div>
       </div>
 
       <div id="g-play" hidden>
@@ -528,6 +590,8 @@ section.ref{margin-top:46px}
         </div>
         <div class="rank" id="gr-rank"></div>
         <div class="r-weak" id="gr-weak" hidden></div>
+        <div class="myrank" id="gr-myrank" hidden></div>
+        <div class="lb" id="lb-res"></div>
         <div class="acts">
           <button class="btn pri" id="g-again" type="button">もう一度ビルド</button>
           <button class="btn" id="g-back" type="button">コースを選ぶ</button>
@@ -1509,6 +1573,19 @@ function endGame(){
   document.getElementById('g-play').hidden=true;
   document.getElementById('g-res').hidden=false;
   setTypeUI(false);
+  var myEl=document.getElementById('gr-myrank');
+  myEl.hidden=true;
+  (function(cid,sec,ms,ac,kp){
+    Promise.resolve()
+      .then(function(){ return lbSubmit(cid,sec,ms,ac,kp); })
+      .then(function(){ return lbRender(lbResEl,cid); })
+      .then(function(info){
+        if(info&&info.rank){
+          myEl.hidden=false;
+          myEl.innerHTML='あなたは <b>'+info.rank+'</b> 位 ／ '+info.total+'人中';
+        }
+      });
+  })(G.c.id,el,G.miss,acc,kps);
   S.boardLayer=-1; setBoardLayer(0); clearMarks();
   showHeat(G.byChar);
 }
@@ -1532,6 +1609,7 @@ function showPick(){
   document.getElementById('g-res').hidden=true;
   document.getElementById('g-pick').hidden=false;
   setTypeUI(false);
+  lbRender(lbPickEl,lbCourse);
   S.boardLayer=-1; setBoardLayer(0); clearMarks();
   hintEl.innerHTML='';
 }
@@ -1546,6 +1624,161 @@ document.getElementById('snd').addEventListener('click',function(){
 });
 document.getElementById('snd').textContent=SOUND?'SOUND':'MUTED';
 
+
+/* ---------- 順位表 ----------
+   Firestore に1人1件の「選手データ」を置く。誰が見ても同じ表が出る。
+   本文: {uid, name, best:{hira:{seconds,misses,accuracy,kps,at}, mix:{...}, layer:{...}}, at}
+
+   身元は匿名ログインの uid。パスワードは無く、ブラウザに紐づく。
+   サイトのデータを消すと別人になる — これは仕様として画面に書いてある。
+   タイムは本人のブラウザが申告するので、その気になれば詐称できる。仲間内の表として割り切る。 */
+var FB=null, UID=null, capsReady=false, lbErr='';
+var ME=null;
+var lbCourse=COURSES[0].id;
+var lbPickEl=document.getElementById('lb-pick');
+var lbResEl=document.getElementById('lb-res');
+
+async function loadMe(){
+  if(!FB||!UID) return null;
+  try{ return await FB.getPlayer(UID); }catch(e){ return null; }
+}
+async function saveMe(patch){
+  if(!FB||!UID) return false;
+  try{
+    var body=ME?JSON.parse(JSON.stringify(ME)):(await loadMe())||{};
+    if(!body.best||typeof body.best!=='object') body.best={};
+    if(typeof body.name!=='string') body.name='';
+    if(patch.name!==undefined) body.name=String(patch.name).slice(0,20);
+    if(patch.best){ for(var k in patch.best) body.best[k]=patch.best[k]; }
+    body.uid=UID;
+    body.at=new Date().toISOString();
+    await FB.savePlayer(body);
+    ME=body;
+    return true;
+  }catch(e){ return false; }
+}
+async function lbFetch(courseId){
+  if(!FB) return null;
+  try{
+    var docs=await FB.allPlayers();
+    var rows=[];
+    docs.forEach(function(v){
+      var b=(v.best&&v.best[courseId])||null;
+      if(!b||typeof b.seconds!=='number') return;
+      rows.push({uid:(typeof v.uid==='string'?v.uid:v.__id),
+                 handle:(typeof v.name==='string'?v.name:''),
+                 seconds:b.seconds, misses:(typeof b.misses==='number'?b.misses:0)});
+    });
+    rows.sort(function(a,b){ return a.seconds-b.seconds; });
+    return rows;
+  }catch(e){ return null; }
+}
+async function lbSubmit(courseId,sec,misses,acc,kps){
+  if(!FB||!UID) return 'none';
+  var prev=(ME&&ME.best&&ME.best[courseId])||null;
+  if(prev&&typeof prev.seconds==='number'&&prev.seconds<=sec) return 'kept';
+  var one={};
+  one[courseId]={seconds:Math.round(sec*10)/10,misses:misses,accuracy:acc,
+                 kps:Math.round(kps*10)/10,at:new Date().toISOString()};
+  var ok=await saveMe({best:one});
+  return ok?(prev?'better':'first'):'none';
+}
+function lbMsg(el,text){
+  if(!el) return;
+  el.innerHTML='';
+  var d=document.createElement('div'); d.className='lbmsg'; d.textContent=text;
+  el.appendChild(d);
+}
+async function lbRender(el,courseId){
+  if(!el) return null;
+  if(!capsReady){ lbMsg(el,'読み込み中…'); return null; }
+  if(!FB){ lbMsg(el,lbErr||'いまは順位表に繋がりません。記録はこの端末に残ります。'); return null; }
+  lbMsg(el,'読み込み中…');
+  var rows=await lbFetch(courseId);
+  if(!rows){ lbMsg(el,'順位表を読み込めませんでした。'); return null; }
+  if(!rows.length){ lbMsg(el,'このコースはまだ記録がありません。最初の一人になってください。'); return {rank:0,total:0}; }
+  var myIndex=-1;
+  rows.forEach(function(r,i){ if(UID&&r.uid===UID) myIndex=i; });
+  var show=rows.slice(0,12);
+  if(myIndex>=12) show=show.concat([rows[myIndex]]);
+  el.innerHTML='';
+  show.forEach(function(r){
+    var i=rows.indexOf(r);
+    var me=!!(UID&&r.uid===UID);
+    var row=document.createElement('div');
+    row.className='lbrow'+(me?' me':'')+(i<3?' top':'');
+    var rank=document.createElement('span'); rank.className='lbrank'; rank.textContent=String(i+1);
+    var name=document.createElement('span'); name.className='lbname';
+    /* 名前は他の人の入力なので textContent で入れる */
+    name.textContent=(r.handle||'名無し')+(me?'（あなた）':'');
+    var sub=document.createElement('span'); sub.className='lbsub'; sub.textContent='ミス '+(r.misses||0);
+    var t=document.createElement('span'); t.className='lbtime'; t.textContent=fmtTime(r.seconds||0);
+    row.appendChild(rank); row.appendChild(name); row.appendChild(sub); row.appendChild(t);
+    el.appendChild(row);
+  });
+  return {rank:myIndex>=0?myIndex+1:0,total:rows.length};
+}
+var meRow=document.getElementById('me-row');
+var meNote=document.getElementById('me-note');
+var meNameEl=document.getElementById('me-name');
+var meMsgEl=document.getElementById('me-msg');
+async function renderMe(){
+  if(!FB||!UID){
+    meRow.hidden=true;
+    meNote.hidden=false;
+    meNote.textContent=lbErr||'いまは順位表に繋がりません。記録はこの端末の中だけに残ります。';
+    return;
+  }
+  ME=await loadMe();
+  meRow.hidden=false;
+  meNameEl.value=(ME&&ME.name)||'';
+  meNameEl.placeholder='あなたの表示名';
+  meNote.hidden=false;
+  meNote.innerHTML='表示名を決めると順位表に名前が出ます。'+
+    '<b>身元はこのブラウザに紐づきます</b> — 別の端末で開くと別人あつかいになり、'+
+    'サイトのデータを消すと記録も切り離されます。ログインはありません。';
+}
+document.getElementById('me-save').addEventListener('click',async function(){
+  var v=meNameEl.value.trim();
+  meMsgEl.textContent='保存中…'; meMsgEl.style.color='var(--muted)';
+  var ok=await saveMe({name:v});
+  meMsgEl.textContent=ok?'保存しました':'保存できませんでした';
+  meMsgEl.style.color=ok?'var(--ok)':'var(--err)';
+  setTimeout(function(){ meMsgEl.textContent=''; },2200);
+  if(ok) lbRender(lbPickEl,lbCourse);
+});
+meNameEl.addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('me-save').click(); });
+
+var lbTabsEl=document.getElementById('lb-tabs');
+COURSES.forEach(function(c){
+  var b=document.createElement('button');
+  b.type='button'; b.className='lbtab'; b.setAttribute('data-c',c.id);
+  b.setAttribute('aria-pressed',String(c.id===lbCourse));
+  b.innerHTML='<i>'+c.grade+'</i>'+c.name;
+  b.addEventListener('click',function(){
+    lbCourse=c.id;
+    var ts=lbTabsEl.querySelectorAll('.lbtab');
+    for(var i=0;i<ts.length;i++) ts[i].setAttribute('aria-pressed',String(ts[i].getAttribute('data-c')===lbCourse));
+    lbRender(lbPickEl,lbCourse);
+  });
+  lbTabsEl.appendChild(b);
+});
+
+/* Firebase 側の用意ができたら受け取る。来なければ順位表なしで続ける。 */
+function lbBoot(api,err){
+  if(capsReady) return;
+  FB=api||null;
+  UID=FB?FB.uid:null;
+  lbErr=err||'';
+  capsReady=true;
+  renderMe();
+  renderCourses();
+  if(!document.getElementById('g-pick').hidden) lbRender(lbPickEl,lbCourse);
+}
+document.addEventListener('kd-fb',function(e){
+  lbBoot(e.detail&&e.detail.api,e.detail&&e.detail.err);
+});
+setTimeout(function(){ lbBoot(null,'順位表に繋がりませんでした（通信かブロックの可能性）。記録はこの端末の中だけに残ります。'); },12000);
 
 /* ---------- テーマ ---------- */
 document.getElementById('theme').addEventListener('click',function(){
@@ -1654,6 +1887,50 @@ document.getElementById('other').addEventListener('click',function(){
   var saved=null;
   try{ saved=JSON.parse(localStorage.getItem('kd-last')); }catch(e){}
   if(saved) startWith(saved);
+})();
+</script>
+
+<!-- 順位表の設定。無ければ順位表だけが畳まれる -->
+<script src="firebase-config.js" onerror="this.dataset.failed=1"></script>
+<script type="module">
+/* Firestore へ繋いで、匿名ログインの uid を取る。
+   失敗しても、その旨を渡して先に進める（ゲームは順位表なしで成立する）。 */
+(async function(){
+  function done(detail){ document.dispatchEvent(new CustomEvent('kd-fb',{detail:detail})); }
+  var cfg=window.KD_FIREBASE;
+  if(!cfg||!cfg.apiKey){
+    done({api:null,err:'順位表はまだ準備中です。記録はこの端末の中だけに残ります。'});
+    return;
+  }
+  try{
+    const {initializeApp}=await import('https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js');
+    const {getAuth,signInAnonymously}=await import('https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js');
+    const {getFirestore,doc,getDoc,setDoc,collection,getDocs,query,limit}=
+      await import('https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js');
+    const app=initializeApp(cfg);
+    const auth=getAuth(app);
+    const db=getFirestore(app);
+    const cred=await signInAnonymously(auth);
+    const uid=cred.user.uid;
+    done({api:{
+      uid:uid,
+      getPlayer:async function(id){
+        const s=await getDoc(doc(db,'players',id));
+        return s.exists()?s.data():null;
+      },
+      savePlayer:async function(body){
+        await setDoc(doc(db,'players',uid),body);
+      },
+      allPlayers:async function(){
+        const s=await getDocs(query(collection(db,'players'),limit(300)));
+        const out=[];
+        s.forEach(function(d){ out.push(Object.assign({__id:d.id},d.data())); });
+        return out;
+      }
+    }});
+  }catch(e){
+    done({api:null,err:'順位表に繋がりませんでした（'+(e&&e.code?e.code:'原因不明')+'）。記録はこの端末の中だけに残ります。'});
+  }
 })();
 </script>
 </body>

@@ -1,5 +1,6 @@
-/* index.html に、キーマップ読み込みの配線を足し、Artifact 専用だった
-   アカウント／順位表（db・user ケイパビリティ）を外す。 */
+/* index.html に、キーマップ読み込みの配線を足す。
+   順位表そのものは残し、Artifact の db / user に繋がっている部分だけを
+   build6.js で Firebase に差し替える。 */
 const fs = require('fs');
 const P = 'index.html';
 let h = fs.readFileSync(P, 'utf8');
@@ -16,24 +17,9 @@ function sub(from, to) {
   n++;
 }
 
-/* ---- 順位表・自分の欄のHTMLを外す ---- */
-cut('        <div class="lbwrap">', '      </div>\n\n      <div id="g-play"', '');
-sub(`        <div class="myrank" id="gr-myrank" hidden></div>
-        <div class="lb" id="lb-res"></div>
-`, '');
-
 /* ---- ヘッダに「別のキーマップ」ボタン ---- */
 sub('<button class="themebtn" id="theme" type="button">THEME</button>',
     '<button class="reload" id="other" type="button">別のキーマップ</button>\n    <button class="themebtn" id="theme" type="button">THEME</button>');
-
-/* ---- 順位表・自分の欄のCSSを外す（同名の見出しがJS側にもあるので、CSSは範囲で消す） ---- */
-cut('/* ---------- 自分の欄 ---------- */', '/* ---------- コース選択 ---------- */', '');
-
-/* ---- 順位表のJSを外す（JS側の見出しは2行目まで含めて一意にする） ---- */
-cut('/* ---------- 順位表 ----------\n   このArtifactを開ける人のあいだで共有される。', '/* ---------- テーマ ---------- */', '');
-cut('  var myEl=document.getElementById(\'gr-myrank\');', '})(G.c.id,el,G.miss,acc,kps);', '');
-sub("})(G.c.id,el,G.miss,acc,kps);\n", '');
-sub("  lbRender(lbPickEl,lbCourse);\n", '');
 
 /* ---- 起動をキーマップ読み込み待ちに ---- */
 sub('\nshowPick();', `
