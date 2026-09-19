@@ -41,7 +41,21 @@ ZMK 用キーマップエディタが書き出す JSON。
 - `type`: `basic` / `mod-tap` / `layer-tap` / `momentary` / `toggle` / `transparent` / `none`
 - `holdAction` に `Layer 1` のような文字列があれば、そのキーをレイヤー呼び出しキーとみなす
 
+## 公開
+
+- URL: https://shin0510katayama-boop.github.io/keymap-dojo/
+- リポジトリ: https://github.com/shin0510katayama-boop/keymap-dojo （public）
+- 出す先: 同じキーボードを使っている人たちの Discord。**その中でURLを貼るだけ**で、
+  どこかに登録したり検索に載せたりはしない（`noindex` を入れてある）。
+
 ## 決定ログ
+
+### 2026-09-19 GitHub Pages に置き、Discord内でURLを配る
+本人の判断。配り方はHTMLファイルの添付とURLの2案から後者を選択。
+**理由**: 相手はクリックするだけで開ける。直したときに貼り直しが要らない。
+**飲むリスク**: リポジトリが public になり、URLを知っていれば誰でも開ける。
+検索避け（`noindex`）は入れたが、URLそのものは秘密ではない。
+
 
 ### 2026-09-19 日本語のみで出す／反応を測るフォームも置かない
 本人の判断。「普通にコミュニティ内で公開するだけ」なので、英語の出題も登録フォームも初版には載せない。
