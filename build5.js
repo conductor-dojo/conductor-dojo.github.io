@@ -1,10 +1,10 @@
-/* トラックボール（ポインティングデバイス）を盤面に描けるようにする。
+/* トラックボールを盤面に描く。
 
-   キーマップの JSON はキーのことしか書いていないので、ボールの位置は割り出せない。
-   そこで (1) JSON に書いてあれば読む (2) 無ければ画面から置ける、の2本立てにする。
-   置いた位置は localStorage のキーマップと一緒に残る。
+   物理的なキー配置はどの板も同じ前提（Conductor Monokey）なので、ボールは
+   最初から決まった場所に描く。置き場を選ばせる UI は持たない。
+   キーマップの JSON に pointers があればそちらを優先する（板が違うときの逃げ道）。
 
-   併せて、Conductor 専用のまま残っていた凡例の「レイヤーキー3つ」を実数に直す。 */
+   併せて、Conductor 決め打ちのまま残っていた凡例の「レイヤーキー3つ」を実数に直す。 */
 const fs = require('fs');
 const P = 'index.html';
 let h = fs.readFileSync(P, 'utf8');
@@ -15,72 +15,45 @@ function sub(from, to) {
   n++;
 }
 
-/* ---------- CSS: 置き場スロットと、置くときのボール ---------- */
-sub(`.key{
-  width:var(--kw);`,
-`.ball{cursor:default}
-.ball.ph{outline:2px dashed var(--lc);outline-offset:2px;cursor:pointer}
-.ball.ph:hover{outline-color:var(--err)}
-.slot{
-  width:calc(var(--kw) * .5);height:calc(var(--kw) * .92);flex:0 0 auto;
-  border:1px dashed var(--lc);border-radius:3px;
-  background:color-mix(in srgb,var(--lc) 24%,transparent);
-  cursor:pointer;padding:0;
-}
-.slot:hover{background:color-mix(in srgb,var(--lc) 45%,transparent)}
-.ptbtn{
-  font:inherit;font-size:11.5px;font-weight:600;color:var(--on-desk);
-  background:transparent;border:1px solid var(--on-desk);border-radius:999px;
-  padding:2px 10px;cursor:pointer;opacity:.75;
-}
-.ptbtn:hover{opacity:1}
-.ptbtn.on{background:var(--on-desk);color:var(--desk);opacity:1}
-.legend .ptnote{font-weight:500;opacity:.8}
-.key{
-  width:var(--kw);`);
-
-/* ---------- 凡例: ボール欄と、置くボタン ---------- */
+/* ---------- 凡例にボール欄 ---------- */
 sub(`      <div><i class="sw o"></i>オレンジのキーキャップ＝レイヤーキー3つ</div>
     </div>`,
 `      <div id="lg-orange"><i class="sw o"></i>オレンジのキーキャップ＝レイヤーキー</div>
-      <div id="lg-ball" hidden><i class="sw b"></i>トラックボール</div>
-      <div><button class="ptbtn" id="ptedit" type="button">トラックボールを置く</button><span class="ptnote" id="ptnote" hidden>置きたい場所をクリック</span></div>
+      <div><i class="sw b"></i>トラックボール（右親指）</div>
     </div>`);
 sub('.sw.o{background:var(--cap-or);border-color:var(--cap-or-edge)}',
 `.sw.o{background:var(--cap-or);border-color:var(--cap-or-edge)}
 .sw.b{background:var(--ball-housing);border-color:var(--ball-housing);position:relative}
 .sw.b::after{content:"";position:absolute;inset:2px 4px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#FFF,var(--ball) 58%,#CFC7B9)}`);
 
-/* ---------- 読み込み: JSON にボールの記述があれば拾う ---------- */
+/* ---------- 盤面に載る、キーではないもの ---------- */
 sub('var KEYMAP=null, COMBOS=[], BASE=null, GEO=null, KBNAME=\'\';',
 `var KEYMAP=null, COMBOS=[], BASE=null, GEO=null, KBNAME='';
-/* 盤面に載る、キーではないもの。いまはトラックボールだけ。
-   {side,row,after,units,label} — after はその右隣に置く位置キー（''なら行の先頭） */
+
+/* 物理配置は共通なので、ボールの位置は決め打ちでよい。
+   after = そのキーの右隣に置く（見つからなければ行の末尾）。 */
+var BUILT_IN_POINTERS=[{side:'R',after:'R31',units:2,label:'トラックボール（右親指）'}];
 var POINTERS=[];
 function parsePointers(json){
-  var raw=[];
+  var raw=null;
   if(json&&json.pointers&&json.pointers.length) raw=json.pointers;
   else if(json&&json.trackball) raw=[json.trackball];
+  if(!raw) return BUILT_IN_POINTERS.slice();
   var out=[];
   raw.forEach(function(p){
     if(!p) return;
     var after=p.after||p.afterKey||'';
-    var side=p.side, row=p.row;
-    var q=after?parsePos(after):null;
-    if(q){ if(!side) side=q.side; if(row===undefined||row===null) row=q.row; }
-    if(!side||row===undefined||row===null) return;
-    out.push({side:side,row:+row,after:after,
+    var side=p.side||(after?(parsePos(after)||{}).side:null);
+    if(!side) return;
+    out.push({side:side,after:after,
               units:p.units>0?+p.units:2,
               label:p.label||'トラックボール'});
   });
   return out;
 }
-function pointersFor(side,row){
-  return POINTERS.filter(function(p){ return p.side===side&&p.row===row; });
-}
 function ballEl(p){
   var d=document.createElement('div');
-  d.className='ball'+(PT&&PT.edit?' ph':'');
+  d.className='ball';
   d.style.width='calc('+p.units+' * var(--kw) + '+(p.units-1)+' * var(--kg))';
   d.title=p.label;
   d.appendChild(document.createElement('i'));
@@ -92,7 +65,7 @@ sub(`  GEO=buildGeo();
   POINTERS=parsePointers(json);
   LAYER_HOLD={};`);
 
-/* ---------- 盤面: 最下段にボールを混ぜる ---------- */
+/* ---------- 最下段にボールを混ぜる ---------- */
 sub(`    if(rr[GEO.lastRow]&&GEO.lastRow>0){
       var bot=document.createElement('div'); bot.className='bottom';
       rr[GEO.lastRow].forEach(function(k){ bot.appendChild(keyEl(lay,k.pos)); });
@@ -100,118 +73,30 @@ sub(`    if(rr[GEO.lastRow]&&GEO.lastRow>0){
     }`,
 `    if(rr[GEO.lastRow]&&GEO.lastRow>0){
       var bot=document.createElement('div'); bot.className='bottom';
-      var pts=pointersFor(side,GEO.lastRow);
-      function ballsAfter(pos){
-        pts.forEach(function(p){ if(p.after===pos) bot.appendChild(ballEl(p)); });
-      }
-      function slotAfter(pos){
-        if(!PT.edit) return;
-        var b=document.createElement('button');
-        b.className='slot'; b.type='button';
-        b.title='ここにトラックボールを置く';
-        b.setAttribute('data-side',side); b.setAttribute('data-after',pos);
-        bot.appendChild(b);
-      }
-      slotAfter(''); ballsAfter('');
+      var pts=POINTERS.filter(function(p){ return p.side===side; });
+      var left=pts.slice();
+      var ballsAfter=function(pos){
+        pts.forEach(function(p){
+          if(p.after!==pos) return;
+          bot.appendChild(ballEl(p));
+          var i=left.indexOf(p); if(i>=0) left.splice(i,1);
+        });
+      };
+      ballsAfter('');
       rr[GEO.lastRow].forEach(function(k){
         bot.appendChild(keyEl(lay,k.pos));
         ballsAfter(k.pos);
-        slotAfter(k.pos);
       });
+      /* 置き場のキーが無い板では行の末尾へ */
+      left.forEach(function(p){ bot.appendChild(ballEl(p)); });
       plate.appendChild(bot);
     }`);
 
-/* ---------- 置く・外す ---------- */
-sub('/* ---------- 画面の部品 ---------- */',
-`/* ---------- トラックボールを置く ---------- */
-var PT={edit:false};
-function ptRefresh(){
-  var lg=document.getElementById('lg-ball');
-  if(lg) lg.hidden=!POINTERS.length;
-  var b=document.getElementById('ptedit');
-  if(b) b.textContent=PT.edit?'置くのをやめる':(POINTERS.length?'トラックボールを動かす':'トラックボールを置く');
-  var nt=document.getElementById('ptnote');
-  if(nt) nt.hidden=!PT.edit;
-}
-function ptRedraw(){
-  var lid=S.boardLayer;
-  S.boardLayer=-99;
-  setBoardLayer(lid);
-  ptRefresh();
-}
-function ptSave(){
-  if(!RAWJSON) return;
-  RAWJSON.pointers=POINTERS.map(function(p){
-    return {type:'trackball',side:p.side,row:p.row,after:p.after,units:p.units,label:p.label};
-  });
-  try{ localStorage.setItem('kd-last',JSON.stringify(RAWJSON)); }catch(e){}
-}
-function ptPlace(side,after){
-  POINTERS=[{side:side,row:GEO.lastRow,after:after,units:2,label:'トラックボール'}];
-  PT.edit=false;
-  ptSave();
-  ptRedraw();
-}
-function ptClear(){
-  POINTERS=[];
-  ptSave();
-  ptRedraw();
-}
-
-/* ---------- 画面の部品 ---------- */`);
-
-/* ボードのクリックを拾う（スロット＝置く、ボール＝外す） */
-sub(`var boardEl=document.getElementById('board');`,
-`var boardEl=document.getElementById('board');
-boardEl.addEventListener('click',function(e){
-  var s=e.target.closest&&e.target.closest('.slot');
-  if(s){ ptPlace(s.getAttribute('data-side'),s.getAttribute('data-after')); return; }
-  var b=e.target.closest&&e.target.closest('.ball');
-  if(b&&PT.edit) ptClear();
-});`);
-
-fs.writeFileSync(P, h);
-console.log('replacements applied:', n);
-
-/* ---------- 続き: ボタンの配線・凡例の実数化・サンプル ---------- */
-{
-  let m = 0;
-  function sub2(from, to) {
-    if (h.indexOf(from) < 0) throw new Error('literal miss (2): ' + from.slice(0, 70));
-    h = h.replace(from, to);
-    m++;
-  }
-
-  /* 描き直しは盤面がまだ無いときに呼ばない */
-  sub2(`function ptRedraw(){
-  var lid=S.boardLayer;
-  S.boardLayer=-99;
-  setBoardLayer(lid);
-  ptRefresh();
-}`,
-`function ptRedraw(){
-  var lid=S.boardLayer;
-  if(lid>=0){ S.boardLayer=-99; setBoardLayer(lid); }
-  ptRefresh();
-}`);
-
-  /* 読み込んだ JSON を持っておく（置いた位置を書き戻すため） */
-  sub2('var KEYMAP=null, COMBOS=[], BASE=null, GEO=null, KBNAME=\'\';',
-       'var KEYMAP=null, COMBOS=[], BASE=null, GEO=null, KBNAME=\'\', RAWJSON=null;');
-  sub2(`function startWith(json){
-  try{
-    loadKeymap(json);`,
-`function startWith(json){
-  try{
-    loadKeymap(json);
-    RAWJSON=json;`);
-
-  /* 読み込み後に凡例とボタンを整える */
-  sub2(`  errEl.hidden=true;
+/* ---------- 凡例のレイヤーキー数を実数にする ---------- */
+sub(`  errEl.hidden=true;
   showSpec();`,
 `  errEl.hidden=true;
   showSpec();
-  ptRefresh();
   (function(){
     var c=0;
     allPositions().forEach(function(p){ if(capClass(p)===' orange') c++; });
@@ -219,25 +104,10 @@ console.log('replacements applied:', n);
     if(lg) lg.lastChild.textContent='オレンジのキーキャップ＝レイヤーキー'+c+'つ';
   })();`);
 
-  /* ボタン */
-  sub2(`document.getElementById('pickfile').addEventListener('click',function(){ fileEl.click(); });`,
-`document.getElementById('ptedit').addEventListener('click',function(){
-  PT.edit=!PT.edit;
-  ptRedraw();
-});
-document.getElementById('pickfile').addEventListener('click',function(){ fileEl.click(); });`);
-
-  /* サンプル（本人の板）には最初からボールを載せておく */
-  sub2(`  startWith({name:'Conductor Monokey',layers:SAMPLE_LAYERS.map(function(L){`,
-`  startWith({name:'Conductor Monokey',
-    pointers:[{type:'trackball',side:'R',row:3,after:'R31',units:2,label:'トラックボール（右親指）'}],
-    layers:SAMPLE_LAYERS.map(function(L){`);
-
-  /* 注記 */
-  sub2(`      <div class="note"><h4>ファイルはこのブラウザの中だけ</h4>`,
-`      <div class="note"><h4>トラックボールも盤面に置けます</h4><p>キーマップの JSON はキーのことしか書いていないので、ボールの位置だけは分かりません。<b>「トラックボールを置く」</b>を押して、最下段の置きたいところをクリックしてください。もう一度押してボールをクリックすると外せます。置いた場所はこの端末に残ります。</p></div>
+/* ---------- 注記 ---------- */
+sub(`      <div class="note"><h4>ファイルはこのブラウザの中だけ</h4>`,
+`      <div class="note"><h4>右親指の先はトラックボール</h4><p>右手の下段は <code>Enter</code> <code>かな</code> の次がボール。<code>Bksp</code> <code>Del</code> はその向こう側なので、下段が左右で 6キー / 4キー と非対称になっています。<b>盤面の形はどの板も同じ前提</b>で、キーの中身だけをキーマップから読んでいます。</p></div>
       <div class="note"><h4>ファイルはこのブラウザの中だけ</h4>`);
 
-  fs.writeFileSync(P, h);
-  console.log('replacements applied (2):', m);
-}
+fs.writeFileSync(P, h);
+console.log('replacements applied:', n);

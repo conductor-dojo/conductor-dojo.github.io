@@ -146,24 +146,6 @@ header.top{
   display:block;width:calc(var(--kw) * .84);height:calc(var(--kw) * .84);border-radius:50%;
   background:radial-gradient(circle at 34% 30%,#FFFFFF,var(--ball) 58%,#CFC7B9);
 }
-.ball{cursor:default}
-.ball.ph{outline:2px dashed var(--lc);outline-offset:2px;cursor:pointer}
-.ball.ph:hover{outline-color:var(--err)}
-.slot{
-  width:calc(var(--kw) * .5);height:calc(var(--kw) * .92);flex:0 0 auto;
-  border:1px dashed var(--lc);border-radius:3px;
-  background:color-mix(in srgb,var(--lc) 24%,transparent);
-  cursor:pointer;padding:0;
-}
-.slot:hover{background:color-mix(in srgb,var(--lc) 45%,transparent)}
-.ptbtn{
-  font:inherit;font-size:11.5px;font-weight:600;color:var(--on-desk);
-  background:transparent;border:1px solid var(--on-desk);border-radius:999px;
-  padding:2px 10px;cursor:pointer;opacity:.75;
-}
-.ptbtn:hover{opacity:1}
-.ptbtn.on{background:var(--on-desk);color:var(--desk);opacity:1}
-.legend .ptnote{font-weight:500;opacity:.8}
 .key{
   width:var(--kw);height:calc(var(--kw) * .92);
   background:var(--cap);border:1px solid var(--cap-edge);border-radius:3px;
@@ -569,8 +551,7 @@ section.ref{margin-top:46px}
       <div><i class="sw h"></i>長押しするレイヤーキー</div>
       <div><i class="sw s"></i>Shift（反対の手で）</div>
       <div id="lg-orange"><i class="sw o"></i>オレンジのキーキャップ＝レイヤーキー</div>
-      <div id="lg-ball" hidden><i class="sw b"></i>トラックボール</div>
-      <div><button class="ptbtn" id="ptedit" type="button">トラックボールを置く</button><span class="ptnote" id="ptnote" hidden>置きたい場所をクリック</span></div>
+      <div><i class="sw b"></i>トラックボール（右親指）</div>
     </div>
   </div>
 
@@ -581,7 +562,7 @@ section.ref{margin-top:46px}
       <div class="note"><h4>時間制限はありません</h4><p>キーキャップは右から流れてきて真ん中で止まり、打ち切るまで待ちます。落ちないので、詰まったら盤面を見て考えて大丈夫。記録は<b>全キーを書き込むまでの時間</b>です。</p></div>
       <div class="note"><h4>打ち込み窓で「届いているか」が分かる</h4><p>枠が銅色に光っていれば打鍵はこのページに届いています。灰色なら窓をクリック。日本語IMEがONだと打っても何も出ないので、そのときは直接入力へ。</p></div>
       <div class="note"><h4>日本語はローマ字で打ちます</h4><p>し＝shi / si / ci、ちゃ＝cha / tya / cya、っか＝kka / xtuka — どの流儀でも通ります。<b>配列に無い文字を含む語は出題から外します。</b></p></div>
-      <div class="note"><h4>トラックボールも盤面に置けます</h4><p>キーマップの JSON はキーのことしか書いていないので、ボールの位置だけは分かりません。<b>「トラックボールを置く」</b>を押して、最下段の置きたいところをクリックしてください。もう一度押してボールをクリックすると外せます。置いた場所はこの端末に残ります。</p></div>
+      <div class="note"><h4>右親指の先はトラックボール</h4><p>右手の下段は <code>Enter</code> <code>かな</code> の次がボール。<code>Bksp</code> <code>Del</code> はその向こう側なので、下段が左右で 6キー / 4キー と非対称になっています。<b>盤面の形はどの板も同じ前提</b>で、キーの中身だけをキーマップから読んでいます。</p></div>
       <div class="note"><h4>ファイルはこのブラウザの中だけ</h4><p>キーマップはどこにも送りません。記録もこの端末の中だけに残ります。</p></div>
     </div>
   </section>
@@ -596,34 +577,32 @@ var SAMPLE_COMBOS=[{"n":"scroll","k":["R12","R13"],"l":"L5","c":"MO(5)"},{"n":"g
 /* ---------- 物理配置（読み込んだキーマップから組み立てる） ----------
    位置キーは "L00" "R23" のように <側><行><列>。行・列・左右をここから割り出すので、
    キー数や列数が違う板でも同じコードで描ける。 */
-var KEYMAP=null, COMBOS=[], BASE=null, GEO=null, KBNAME='', RAWJSON=null;
-/* 盤面に載る、キーではないもの。いまはトラックボールだけ。
-   {side,row,after,units,label} — after はその右隣に置く位置キー（''なら行の先頭） */
+var KEYMAP=null, COMBOS=[], BASE=null, GEO=null, KBNAME='';
+
+/* 物理配置は共通なので、ボールの位置は決め打ちでよい。
+   after = そのキーの右隣に置く（見つからなければ行の末尾）。 */
+var BUILT_IN_POINTERS=[{side:'R',after:'R31',units:2,label:'トラックボール（右親指）'}];
 var POINTERS=[];
 function parsePointers(json){
-  var raw=[];
+  var raw=null;
   if(json&&json.pointers&&json.pointers.length) raw=json.pointers;
   else if(json&&json.trackball) raw=[json.trackball];
+  if(!raw) return BUILT_IN_POINTERS.slice();
   var out=[];
   raw.forEach(function(p){
     if(!p) return;
     var after=p.after||p.afterKey||'';
-    var side=p.side, row=p.row;
-    var q=after?parsePos(after):null;
-    if(q){ if(!side) side=q.side; if(row===undefined||row===null) row=q.row; }
-    if(!side||row===undefined||row===null) return;
-    out.push({side:side,row:+row,after:after,
+    var side=p.side||(after?(parsePos(after)||{}).side:null);
+    if(!side) return;
+    out.push({side:side,after:after,
               units:p.units>0?+p.units:2,
               label:p.label||'トラックボール'});
   });
   return out;
 }
-function pointersFor(side,row){
-  return POINTERS.filter(function(p){ return p.side===side&&p.row===row; });
-}
 function ballEl(p){
   var d=document.createElement('div');
-  d.className='ball'+(PT&&PT.edit?' ph':'');
+  d.className='ball';
   d.style.width='calc('+p.units+' * var(--kw) + '+(p.units-1)+' * var(--kg))';
   d.title=p.label;
   d.appendChild(document.createElement('i'));
@@ -1094,24 +1073,22 @@ function buildBoard(el,lay){
     plate.appendChild(alpha);
     if(rr[GEO.lastRow]&&GEO.lastRow>0){
       var bot=document.createElement('div'); bot.className='bottom';
-      var pts=pointersFor(side,GEO.lastRow);
-      function ballsAfter(pos){
-        pts.forEach(function(p){ if(p.after===pos) bot.appendChild(ballEl(p)); });
-      }
-      function slotAfter(pos){
-        if(!PT.edit) return;
-        var b=document.createElement('button');
-        b.className='slot'; b.type='button';
-        b.title='ここにトラックボールを置く';
-        b.setAttribute('data-side',side); b.setAttribute('data-after',pos);
-        bot.appendChild(b);
-      }
-      slotAfter(''); ballsAfter('');
+      var pts=POINTERS.filter(function(p){ return p.side===side; });
+      var left=pts.slice();
+      var ballsAfter=function(pos){
+        pts.forEach(function(p){
+          if(p.after!==pos) return;
+          bot.appendChild(ballEl(p));
+          var i=left.indexOf(p); if(i>=0) left.splice(i,1);
+        });
+      };
+      ballsAfter('');
       rr[GEO.lastRow].forEach(function(k){
         bot.appendChild(keyEl(lay,k.pos));
         ballsAfter(k.pos);
-        slotAfter(k.pos);
       });
+      /* 置き場のキーが無い板では行の末尾へ */
+      left.forEach(function(p){ bot.appendChild(ballEl(p)); });
       plate.appendChild(bot);
     }
     half.appendChild(plate);
@@ -1119,48 +1096,8 @@ function buildBoard(el,lay){
   });
 }
 
-/* ---------- トラックボールを置く ---------- */
-var PT={edit:false};
-function ptRefresh(){
-  var lg=document.getElementById('lg-ball');
-  if(lg) lg.hidden=!POINTERS.length;
-  var b=document.getElementById('ptedit');
-  if(b) b.textContent=PT.edit?'置くのをやめる':(POINTERS.length?'トラックボールを動かす':'トラックボールを置く');
-  var nt=document.getElementById('ptnote');
-  if(nt) nt.hidden=!PT.edit;
-}
-function ptRedraw(){
-  var lid=S.boardLayer;
-  if(lid>=0){ S.boardLayer=-99; setBoardLayer(lid); }
-  ptRefresh();
-}
-function ptSave(){
-  if(!RAWJSON) return;
-  RAWJSON.pointers=POINTERS.map(function(p){
-    return {type:'trackball',side:p.side,row:p.row,after:p.after,units:p.units,label:p.label};
-  });
-  try{ localStorage.setItem('kd-last',JSON.stringify(RAWJSON)); }catch(e){}
-}
-function ptPlace(side,after){
-  POINTERS=[{side:side,row:GEO.lastRow,after:after,units:2,label:'トラックボール'}];
-  PT.edit=false;
-  ptSave();
-  ptRedraw();
-}
-function ptClear(){
-  POINTERS=[];
-  ptSave();
-  ptRedraw();
-}
-
 /* ---------- 画面の部品 ---------- */
 var boardEl=document.getElementById('board');
-boardEl.addEventListener('click',function(e){
-  var s=e.target.closest&&e.target.closest('.slot');
-  if(s){ ptPlace(s.getAttribute('data-side'),s.getAttribute('data-after')); return; }
-  var b=e.target.closest&&e.target.closest('.ball');
-  if(b&&PT.edit) ptClear();
-});
 var hintEl=document.getElementById('hint');
 var imeEl=document.getElementById('ime');
 var jpnoteEl=document.getElementById('jpnote');
@@ -1646,14 +1583,12 @@ function showSpec(){
 function startWith(json){
   try{
     loadKeymap(json);
-    RAWJSON=json;
   }catch(e){
     loadErr('このファイルは読めませんでした — '+(e&&e.message?e.message:'形式が違うようです'));
     return;
   }
   errEl.hidden=true;
   showSpec();
-  ptRefresh();
   (function(){
     var c=0;
     allPositions().forEach(function(p){ if(capClass(p)===' orange') c++; });
@@ -1681,17 +1616,11 @@ function readFile(f){
   fr.onerror=function(){ loadErr('ファイルを読み込めませんでした'); };
   fr.readAsText(f);
 }
-document.getElementById('ptedit').addEventListener('click',function(){
-  PT.edit=!PT.edit;
-  ptRedraw();
-});
 document.getElementById('pickfile').addEventListener('click',function(){ fileEl.click(); });
 fileEl.addEventListener('change',function(){ readFile(fileEl.files&&fileEl.files[0]); });
 document.getElementById('usesample').addEventListener('click',function(e){
   e.preventDefault();
-  startWith({name:'Conductor Monokey',
-    pointers:[{type:'trackball',side:'R',row:3,after:'R31',units:2,label:'トラックボール（右親指）'}],
-    layers:SAMPLE_LAYERS.map(function(L){
+  startWith({name:'Conductor Monokey',layers:SAMPLE_LAYERS.map(function(L){
     return {id:L.id,name:L.name,color:L.color,bindings:L.b};
   }),combos:SAMPLE_COMBOS.map(function(c){
     return {name:c.n,keyPositions:c.k,binding:{label:c.l,keyCode:c.c}};
