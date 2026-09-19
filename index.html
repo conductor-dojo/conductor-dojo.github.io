@@ -1,4 +1,15 @@
-<title>Keymap Dojo</title>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Keymap Dojo — 自分のキーマップでタイピング練習</title>
+<meta name="description" content="自作キーボードのキーマップJSONを読み込んで、その配列のままタイピングを練習するサイト。レイヤーもコンボもそのまま。サーバー無し・ログイン無し・ファイルはブラウザの外に出ません。">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Keymap Dojo — 自分のキーマップでタイピング練習">
+<meta property="og:description" content="自作キーボードのキーマップJSONを読み込んで、その配列のままタイピングを練習するサイト。レイヤーもコンボもそのまま。サーバー無し・ログイン無し・ファイルはブラウザの外に出ません。">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap">
 <style>
@@ -443,7 +454,8 @@ section.ref{margin-top:46px}
   .r-side{gap:14px}
 }
 </style>
-
+</head>
+<body>
 <header class="top">
   <div class="top-in">
     <div class="brand">
@@ -1588,3 +1600,5 @@ document.getElementById('other').addEventListener('click',function(){
   if(saved) startWith(saved);
 })();
 </script>
+</body>
+</html>
