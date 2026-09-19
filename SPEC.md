@@ -51,7 +51,7 @@ ZMK 用キーマップエディタが書き出す JSON。
 ## 決定ログ
 
 ### 2026-09-20 個人名が出ない置き場に移した
-最初 `shin0510katayama-boop` 個人アカウントの下に置いたが、**URLに本人の名前が入る**。
+最初は個人アカウントの下に置いたが、**URLに実名が入ってしまう**。
 さらに悪いことに、**コミットの作者欄に本名とメールアドレスが残っていた**（公開リポジトリでは誰でも読める）。
 `conductor-dojo` という Organization を作ってそこに置き直し、履歴の作者名も
 `conductor-dojo <conductor-dojo@users.noreply.github.com>` に書き換えた。
