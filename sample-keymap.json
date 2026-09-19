@@ -3057,5 +3057,15 @@
       "layers": []
     }
   ],
-  "macros": []
+  "macros": [],
+  "pointers": [
+    {
+      "type": "trackball",
+      "side": "R",
+      "row": 3,
+      "after": "R31",
+      "units": 2,
+      "label": "トラックボール（右親指）"
+    }
+  ]
 }
