@@ -43,12 +43,21 @@ ZMK 用キーマップエディタが書き出す JSON。
 
 ## 公開
 
-- URL: https://shin0510katayama-boop.github.io/keymap-dojo/
-- リポジトリ: https://github.com/shin0510katayama-boop/keymap-dojo （public）
+- URL: https://conductor-dojo.github.io/
+- リポジトリ: https://github.com/conductor-dojo/conductor-dojo.github.io （public）
 - 出す先: 同じキーボードを使っている人たちの Discord。**その中でURLを貼るだけ**で、
   どこかに登録したり検索に載せたりはしない（`noindex` を入れてある）。
 
 ## 決定ログ
+
+### 2026-09-20 個人名が出ない置き場に移した
+最初 `shin0510katayama-boop` 個人アカウントの下に置いたが、**URLに本人の名前が入る**。
+さらに悪いことに、**コミットの作者欄に本名とメールアドレスが残っていた**（公開リポジトリでは誰でも読める）。
+`conductor-dojo` という Organization を作ってそこに置き直し、履歴の作者名も
+`conductor-dojo <conductor-dojo@users.noreply.github.com>` に書き換えた。
+**理由**: URLは貼れば残る。名前を消すのは、貼る前の今しかできない。
+**この先も効く決め事**: このリポジトリでコミットするときの名義は上記で固定する（`.git/config` に設定済み）。
+
 
 ### 2026-09-19 GitHub Pages に置き、Discord内でURLを配る
 本人の判断。配り方はHTMLファイルの添付とURLの2案から後者を選択。
