@@ -123,7 +123,7 @@ document の keydown を capture で拾って**1文字キーを全部 preventDef
 順位表で「表示名」の入力欄を置いたことで、そこに打った英数字・スペース・Backspace まで食われていた。
 **日本語だけは通っていた**（IME の合成中は早期 return しているため）ので、
 「使える文字と使えない文字がある」ように見えていた。
-**直し方**:  /  /  / contenteditable にフォーカスがあるあいだは、
+**直し方**: `input` / `textarea` / `select` / contenteditable にフォーカスがあるあいだは、
 ゲーム側の keydown も、裏の sink へフォーカスを奪い返す mousedown も手を出さない。
 **教訓**: document に capture で preventDefault を置いたら、**あとからページに入力欄を足した時点で壊れる**。
 
