@@ -240,3 +240,42 @@ fs.writeFileSync(P, h);
 const m = h.match(/<script>([\s\S]*?)<\/script>/);
 fs.writeFileSync('_check.js', m[1]);
 console.log('replacements applied:', n);
+
+/* ---------- 続き: 入力欄とゲーム入力を切り分ける ----------
+
+   ゲームの打鍵は document の keydown を capture で拾い、1文字キーを全部
+   preventDefault している。順位表で「表示名」の入力欄を置いたことで、
+   そこに打った英数字・スペース・Backspace までゲームに食われるようになった。
+   日本語だけは IME の合成を早期 return しているので通る——つまり
+   「名前に使える文字と使えない文字がある」ように見える。
+
+   入力欄にフォーカスがあるあいだは、ゲーム側は手を出さない。 */
+{
+  let m = 0;
+  function sub3(from, to) {
+    if (h.indexOf(from) < 0) throw new Error('literal miss (3): ' + from.slice(0, 70));
+    h = h.replace(from, to);
+    m++;
+  }
+
+  sub3(`document.addEventListener('keydown',function(e){
+  if(e.ctrlKey||e.metaKey||e.altKey) return;`,
+`/* 打ち込み窓の裏にある sink 以外の入力欄 = 人が文字を打つ場所 */
+function isTextField(t){
+  if(!t||t===sinkEl) return false;
+  var n=t.nodeName;
+  return n==='INPUT'||n==='TEXTAREA'||n==='SELECT'||t.isContentEditable===true;
+}
+document.addEventListener('keydown',function(e){
+  if(isTextField(e.target)) return;
+  if(e.ctrlKey||e.metaKey||e.altKey) return;`);
+
+  /* 入力欄をクリックしたときに、裏の sink へフォーカスを奪い返さない */
+  sub3("document.addEventListener('mousedown',function(){ sinkEl.focus({preventScroll:true}); });",
+       "document.addEventListener('mousedown',function(e){\n  if(isTextField(e.target)) return;\n  sinkEl.focus({preventScroll:true});\n});");
+
+  fs.writeFileSync(P, h);
+  const mm = h.match(/<script>([\s\S]*?)<\/script>/);
+  fs.writeFileSync('_check.js', mm[1]);
+  console.log('replacements applied (3):', m);
+}

@@ -1288,7 +1288,14 @@ function showHeat(byChar){
 }
 
 /* ---------- 入力 ---------- */
+/* 打ち込み窓の裏にある sink 以外の入力欄 = 人が文字を打つ場所 */
+function isTextField(t){
+  if(!t||t===sinkEl) return false;
+  var n=t.nodeName;
+  return n==='INPUT'||n==='TEXTAREA'||n==='SELECT'||t.isContentEditable===true;
+}
 document.addEventListener('keydown',function(e){
+  if(isTextField(e.target)) return;
   if(e.ctrlKey||e.metaKey||e.altKey) return;
   if(e.isComposing||e.keyCode===229||e.key==='Process'){ imeEl.hidden=false; typeboxEl.classList.add('ime'); return; }
   if(e.key==='Tab') return;
@@ -1300,7 +1307,10 @@ document.addEventListener('keydown',function(e){
     e.preventDefault();
   }
 },true);
-document.addEventListener('mousedown',function(){ sinkEl.focus({preventScroll:true}); });
+document.addEventListener('mousedown',function(e){
+  if(isTextField(e.target)) return;
+  sinkEl.focus({preventScroll:true});
+});
 typeboxEl.addEventListener('mousedown',function(){ sinkEl.focus({preventScroll:true}); });
 function refreshFocusUI(){
   var live=false;
