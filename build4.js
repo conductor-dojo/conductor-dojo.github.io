@@ -11,7 +11,7 @@ if (/^<!doctype/i.test(h.trim())) {
 }
 if (h.indexOf('<title>') !== 0) throw new Error('expected the fragment to start with <title>');
 
-const TITLE = 'Keymap Dojo — 自分のキーマップでタイピング練習';
+const TITLE = 'Conductor道場 — 自分のキーマップでタイピング練習';
 const DESC = '自作キーボードのキーマップJSONを読み込んで、その配列のままタイピングを練習するサイト。'
            + 'レイヤーもコンボもそのまま。サーバー無し・ログイン無し・ファイルはブラウザの外に出ません。';
 
@@ -21,7 +21,7 @@ if (cut < 0) throw new Error('no </style> to split on');
 let head = h.slice(0, cut + 8);
 const body = h.slice(cut + 8).replace(/^\s*\n/, '');
 
-head = head.replace('<title>Keymap Dojo</title>\n', '');
+head = head.replace('<title>Conductor道場</title>\n', '');
 
 const out = `<!doctype html>
 <html lang="ja">

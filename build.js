@@ -16,8 +16,8 @@ function sub(from, to) {
 }
 
 /* ================= 名前 ================= */
-sub('<title>Conductor Monokey 道場</title>', '<title>Keymap Dojo</title>');
-sub('<h1>Conductor <b>Monokey</b> 道場</h1>', '<h1>Keymap <b>Dojo</b></h1>');
+sub('<title>Conductor Monokey 道場</title>', '<title>Conductor道場</title>');
+sub('<h1>Conductor <b>Monokey</b> 道場</h1>', '<h1>Conductor<b>道場</b></h1>');
 sub('<div class="spec"><span>ZMK</span><span>40 KEYS</span><span>SPLIT</span><span>7 LAYERS</span><span>7 COMBOS</span></div>',
     '<div class="spec" id="spec"></div>');
 
